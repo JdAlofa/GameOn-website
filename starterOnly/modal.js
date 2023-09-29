@@ -24,7 +24,8 @@ function launchModal() {
 }
 
 // ISSUE 1 :closing the modal form
-document.querySelector(".close").addEventListener("click", () => {
+const closeBtn = document.querySelector(".close");
+closeBtn.addEventListener("click", () => {
   // modalContent.style.animationName = "modalclose";
   form.reset();
   modalbg.style.display = "none";
@@ -101,10 +102,10 @@ birthdate.addEventListener("input", () => {
   const ageDate = new Date(ageDiffMs);
   const age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
-  if (birthdate.value === "") {
+  if (birthdate.value === NaN || birthdate.value === "") {
     birthdateForm.setAttribute(
       "data-error",
-      "Veuillez entrer votre date de naissance."
+      "Veuillez entrer une date de naissance valide."
     );
     birthdateForm.setAttribute("data-error-visible", "true");
   } else if (age < 16) {
@@ -153,29 +154,52 @@ submit.addEventListener("click", (event) => {
   event.preventDefault();
 
   if (validate()) {
-    form.submit();
+    const confirmationMessage = document.querySelector("#confirmation-message");
+    confirmationMessage.style.display = "block";
+    setTimeout(() => {
+      confirmationMessage.style.display = "none";
+      submit.style.display = "none";
+      form.submit();
+    }, 3000);
   }
 });
 
 function validate() {
   //////////////// validate the input fields
   let inputFieldsValidated = false;
+  let correctInputFields = 0;
 
-  inputFields.forEach((element) => {
-    if (element.value==="" || element.parentElement.classList.contains("data-error-visible")) {
-
-      element.parentElement.setAttribute(
+  for (let i = 0; i < inputFields.length; i++) {
+    if (
+      inputFields[i].parentElement.hasAttribute("data-error-visible") ||
+      inputFields[i].value === ""
+    ) {
+      inputFieldsValidated = false;
+      inputFields[i].parentElement.setAttribute(
         "data-error",
         "Veuillez remplir ce champ."
       );
-      element.parentElement.setAttribute("data-error-visible", "true");
-      inputFieldsValidated = false;
-      
-
-    } else if  (element.value !=="" && !element.parentElement.classList.contains("data-error-visible")){
-      inputFieldsValidated = true;
+      inputFields[i].parentElement.setAttribute("data-error-visible", "true");
     }
-  });
+  }
+  for (let i = 0; i < inputFields.length; i++) {
+    if (
+      inputFields[i].value !== "" &&
+      inputFields[i].parentElement.hasAttribute("data-error-visible") === false
+    ) {
+      correctInputFields++;
+      inputFields[i].parentElement.removeAttribute("data-error");
+      inputFields[i].parentElement.removeAttribute("data-error-visible");
+    }
+  }
+
+  for (let i = 0; i < inputFields.length; i++) {
+    if (correctInputFields === inputFields.length) {
+      inputFieldsValidated = true;
+    } else {
+      inputFieldsValidated = false;
+    }
+  }
 
   /////////////// validate the cities checkboxes
   let citiesValidated = false;
@@ -184,11 +208,23 @@ function validate() {
       citiesValidated = true;
       tournaments.removeAttribute("data-error");
       tournaments.removeAttribute("data-error-visible");
-    } else {
-      tournaments.setAttribute("data-error", "Veuillez choisir une ville.");
-      tournaments.setAttribute("data-error-visible", "true");
     }
   });
+
+  if (citiesValidated === false) {
+    tournaments.setAttribute("data-error", "Veuillez choisir une ville.");
+    tournaments.setAttribute("data-error-visible", "true");
+    // adds an event listener to check if any button input is checked and then removes the attributes
+    cities.forEach((city) => {
+      city.addEventListener("input", () => {
+        if (city.checked) {
+          tournaments.removeAttribute("data-error");
+          tournaments.removeAttribute("data-error-visible");
+          citiesValidated = true;
+        }
+      });
+    });
+  }
   ////////////// Validate the terms of service checkbox
 
   let tosValidated = false;
