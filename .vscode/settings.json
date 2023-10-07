@@ -1,4 +1,5 @@
 {
   "editor.fontSize": 14,
-  "editor.fontFamily": "RobotoMono Nerd font, monospace"
+  "editor.fontFamily": "RobotoMono Nerd font, monospace",
+  "liveServer.settings.port": 81
 }
